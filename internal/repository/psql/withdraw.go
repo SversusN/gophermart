@@ -52,12 +52,13 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 			txError := tx.Rollback()
 			if txError != nil {
 				err = fmt.Errorf("balance DeductPoints rollback error %s: %s", txError.Error(), err.Error())
+				w.log.Error(err.Error())
 			}
 		}
 	}()
 
 	row := tx.QueryRowContext(ctx,
-		`SELECT (SUM(COALESCE(a.amount,0)) - SUM(COALESCE(w.amount,0))) as TotalBalance
+		`SELECT COALESCE(SUM(a.amount) - SUM(w.amount),0) as TotalBalance
 									FROM public.accruals a INNER JOIN public.withdrawals w ON a.user_id = w.user_id
                                     WHERE a.user_id=$1`, order.UserID)
 	if err != nil {
