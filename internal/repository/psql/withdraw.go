@@ -66,7 +66,7 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 		return err
 	}
 
-	b := float32(canDeduct)-order.Sum < 0
+	b := float32(canDeduct)-order.Sum < 0.0
 	if b {
 		return errs.ShowMeTheMoney{}
 	}
