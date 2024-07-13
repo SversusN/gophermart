@@ -35,7 +35,7 @@ func (h *Handler) loadOrders(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "wrong input data", http.StatusBadRequest)
 		return
 	}
-	if util.ValidLuhn(numOrder) {
+	if !util.ValidLuhn(numOrder) {
 		h.log.Error("Handler.loadOrders: ParseUint number order error")
 		http.Error(w, "wrong input data", http.StatusBadRequest)
 		return
