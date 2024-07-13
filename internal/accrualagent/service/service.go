@@ -13,7 +13,7 @@ import (
 
 const (
 	timeoutClient       = 5
-	maxWorkers          = 3
+	limitWorkers        = 3
 	bufSizeOrdersRecord = 3
 	limitQuery          = 10
 	timeoutLoadOrdersDB = 3
@@ -45,7 +45,7 @@ func NewAgent(r AgentInterface, accrualURL string, log *zap.Logger) *Agent {
 		chOrdersForProcessing:          make(chan model.Order),
 		chOrdersAccrual:                make(chan model.OrderAccrual),
 		chSignalGetOrdersForProcessing: make(chan struct{}),
-		chLimitWorkers:                 make(chan int, maxWorkers),
+		chLimitWorkers:                 make(chan int, limitWorkers),
 		log:                            log,
 	}
 }
