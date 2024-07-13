@@ -41,7 +41,7 @@ func (w *WithdrawOrderRepository) GetWithdrawals(ctx context.Context, UserID int
 
 func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model.WithdrawOrder) (err error) {
 	order.ProcessedAt = time.Now()
-	canDeduct := 0.0
+
 	tx, err := w.db.Begin()
 	if err != nil {
 		return err
@@ -56,20 +56,16 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 			}
 		}
 	}()
-
-	row := tx.QueryRowContext(ctx,
+	canDeduct := 0.0
+	err = tx.QueryRowContext(ctx,
 		`SELECT COALESCE(SUM(a.amount) - SUM(w.amount),0) as TotalBalance
 									FROM public.accruals a INNER JOIN public.withdrawals w ON a.user_id = w.user_id
-                                    WHERE a.user_id=$1`, order.UserID)
+                                    WHERE a.user_id=$1`, order.UserID).Scan(&canDeduct)
 	if err != nil {
 		w.log.Error(err.Error())
 		return err
 	}
-	err = row.Scan(&canDeduct)
-	if err != nil {
-		w.log.Error(err.Error())
-		return err
-	}
+
 	b := float32(canDeduct)-order.Sum < 0
 	if b {
 		w.log.Error(err.Error())
