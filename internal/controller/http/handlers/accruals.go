@@ -30,12 +30,13 @@ func (h *Handler) loadOrders(w http.ResponseWriter, r *http.Request) {
 	}
 	strBody := string(body)
 	numOrder, err := strconv.ParseUint(strBody, 0, 64)
-	if err != nil {
+	if !util.ValidLuhn(numOrder) {
 		h.log.Error("Handler.loadOrders: ParseUint number order error")
-		http.Error(w, "wrong input data", http.StatusBadRequest)
+		http.Error(w, "wrong input data", http.StatusUnprocessableEntity)
 		return
 	}
-	if !util.ValidLuhn(numOrder) {
+
+	if err != nil {
 		h.log.Error("Handler.loadOrders: ParseUint number order error")
 		http.Error(w, "wrong input data", http.StatusBadRequest)
 		return
