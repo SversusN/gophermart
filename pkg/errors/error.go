@@ -40,8 +40,7 @@ func (c CheckError) Error() string {
 	return "invalid order number format"
 }
 
-type ShowMeTheMoney struct {
-}
+type ShowMeTheMoney struct{}
 
 func (s ShowMeTheMoney) Error() string {
 	return "not enough points on the account"

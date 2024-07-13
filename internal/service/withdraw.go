@@ -42,11 +42,11 @@ func (w WithdrawOrderService) DeductionOfPoints(ctx context.Context, order *mode
 
 	err := w.repo.DeductPoints(ctx, order)
 	if errors.Is(err, errs.ShowMeTheMoney{}) {
-		w.log.Error("WithdrawOrderService.DeductionOfPoints: DeductPoints db error")
+		w.log.Info("WithdrawOrderService.DeductionOfPoints: DeductPoints db error")
 		return err
 	}
 	if err != nil {
-		w.log.Error("WithdrawOrderService.DeductionOfPoints: DeductPoints db error")
+		w.log.Info("WithdrawOrderService.DeductionOfPoints: DeductPoints db error")
 		return err
 	}
 
