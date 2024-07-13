@@ -22,12 +22,6 @@ func (auth AuthenticationError) Error() string {
 	return "invalid login/password"
 }
 
-//var (
-//	ErrOrderAlreadyUploadedCurrentUser = errors.New("the order has already been uploaded by the current user")
-//	ErrOrderAlreadyUploadedAnotherUser = errors.New("the order has already been uploaded by another user")
-//	ErrInvalidOrderNumberForm          = errors.New("invalid order number format")
-//)
-
 type OrderAlreadyUploadedCurrentUserError struct{}
 
 func (o OrderAlreadyUploadedCurrentUserError) Error() string {
@@ -46,9 +40,9 @@ func (c CheckError) Error() string {
 	return "invalid order number format"
 }
 
-type NotEnoughPoints struct {
+type ShowMeTheMoney struct {
 }
 
-func (n NotEnoughPoints) Error() string {
+func (s ShowMeTheMoney) Error() string {
 	return "not enough points on the account"
 }

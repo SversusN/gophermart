@@ -62,7 +62,7 @@ func (h *Handler) deductionOfPoints(w http.ResponseWriter, r *http.Request) {
 	switch err.(type) {
 	case nil:
 		w.WriteHeader(http.StatusOK)
-	case errs.NotEnoughPoints:
+	case errs.ShowMeTheMoney:
 		http.Error(w, err.Error(), http.StatusPaymentRequired)
 		return
 	default:

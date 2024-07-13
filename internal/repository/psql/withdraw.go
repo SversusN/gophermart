@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	errs "github.com/SversusN/gophermart/pkg/errors"
 	"go.uber.org/zap"
 	"time"
 
@@ -40,7 +41,7 @@ func (w *WithdrawOrderRepository) GetWithdrawals(ctx context.Context, UserID int
 
 func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model.WithdrawOrder) (err error) {
 	order.ProcessedAt = time.Now()
-
+	canDeduct := 0.0
 	tx, err := w.db.Begin()
 	if err != nil {
 		return err
@@ -54,6 +55,22 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 			}
 		}
 	}()
+
+	row := tx.QueryRowContext(ctx,
+		`SELECT SUM(a.amount) - SUM(w.amount) as TotalBalance
+									FROM public.withdrawals w INNER JOIN public.accruals a ON a.user_id = w.user_id
+                                    WHERE user_id=$1 FOR UPDATE`, order.UserID)
+	if err != nil {
+		return err
+	}
+	err = row.Scan(&canDeduct)
+	if err != nil {
+		return err
+	}
+	b := float32(canDeduct)-order.Sum < 0
+	if b {
+		return errs.ShowMeTheMoney{}
+	}
 
 	_, err = tx.ExecContext(ctx,
 		"INSERT INTO public.orders(order_num, user_id) VALUES ($1,$2)", order.Order, order.UserID)

@@ -117,7 +117,7 @@ func (a *Agent) getJSONOrderFromAccrual(url string, orderAccrual *model.OrderAcc
 		return nil
 	}
 	if err != nil {
-		a.log.Error("Broker.getJSONOrderFromAccrual: Get url error")
+		a.log.Error("Agent.getJSONOrderFromAccrual: Get url error")
 		return err
 	}
 	defer resp.Body.Close()
@@ -125,7 +125,7 @@ func (a *Agent) getJSONOrderFromAccrual(url string, orderAccrual *model.OrderAcc
 	err = json.NewDecoder(resp.Body).Decode(&orderAccrual)
 
 	if err != nil {
-		a.log.Error("Broker.getJSONOrderFromAccrual: json decode error")
+		a.log.Error("Agent.getJSONOrderFromAccrual: json decode error")
 		return err
 	}
 	return nil
@@ -139,12 +139,12 @@ func (a *Agent) LoadOrdersAccrual(ctx context.Context) {
 		case order := <-a.chOrdersAccrual:
 			a.bufOrderForRecord = append(a.bufOrderForRecord, order)
 			if len(a.bufOrderForRecord) >= bufSizeOrdersRecord {
-				a.flush(ctx)
+				a.send(ctx)
 			}
 			ticker.Reset(timeoutLoadOrdersDB * time.Second)
 		case <-ticker.C:
 			if len(a.bufOrderForRecord) > 0 {
-				a.flush(ctx)
+				a.send(ctx)
 			}
 		case <-ctx.Done():
 			return
@@ -152,14 +152,14 @@ func (a *Agent) LoadOrdersAccrual(ctx context.Context) {
 	}
 }
 
-func (a *Agent) flush(ctx context.Context) {
+func (a *Agent) send(ctx context.Context) {
 	ordersUpdate := make([]model.OrderAccrual, len(a.bufOrderForRecord))
 	copy(ordersUpdate, a.bufOrderForRecord)
 	a.bufOrderForRecord = make([]model.OrderAccrual, 0)
 	go func() {
 		err := a.r.UpdateOrderAccruals(ctx, ordersUpdate)
 		if err != nil {
-			a.log.Error("Broker.flush: UpdateOrderAccruals db error")
+			a.log.Error("Agent.send: UpdateOrderAccruals db error")
 			return
 		}
 		a.chSignalGetOrdersForProcessing <- struct{}{}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	errs "github.com/SversusN/gophermart/pkg/errors"
 	"go.uber.org/zap"
 
@@ -36,10 +37,14 @@ func (w WithdrawOrderService) DeductionOfPoints(ctx context.Context, order *mode
 	accruals, withdrawn := w.GetBalance(ctx, order.UserID)
 
 	if order.Sum >= accruals-withdrawn {
-		return errs.NotEnoughPoints{}
+		return errs.ShowMeTheMoney{}
 	}
 
 	err := w.repo.DeductPoints(ctx, order)
+	if errors.Is(err, errs.ShowMeTheMoney{}) {
+		w.log.Error("WithdrawOrderService.DeductionOfPoints: DeductPoints db error")
+		return err
+	}
 	if err != nil {
 		w.log.Error("WithdrawOrderService.DeductionOfPoints: DeductPoints db error")
 		return err
