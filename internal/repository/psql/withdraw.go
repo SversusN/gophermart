@@ -61,14 +61,17 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 									FROM public.accruals w INNER JOIN public.accrualswithdrawals a ON a.user_id = w.user_id
                                     WHERE user_id=$1 FOR UPDATE`, order.UserID)
 	if err != nil {
+		w.log.Error(err.Error())
 		return err
 	}
 	err = row.Scan(&canDeduct)
 	if err != nil {
+		w.log.Error(err.Error())
 		return err
 	}
 	b := float32(canDeduct)-order.Sum < 0
 	if b {
+		w.log.Error(err.Error())
 		return errs.ShowMeTheMoney{}
 	}
 
