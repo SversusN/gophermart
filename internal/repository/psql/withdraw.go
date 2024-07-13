@@ -57,7 +57,7 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 	}()
 
 	row := tx.QueryRowContext(ctx,
-		`SELECT SUM(COALESCE(a.amount,0)) - COALESCE((w.amount),0) as TotalBalance
+		`SELECT (SUM(COALESCE(a.amount,0)) - SUM(COALESCE(w.amount,0))) as TotalBalance
 									FROM public.accruals a INNER JOIN public.withdrawals w ON a.user_id = w.user_id
                                     WHERE a.user_id=$1`, order.UserID)
 	if err != nil {
