@@ -6,13 +6,13 @@ import (
 
 	"go.uber.org/zap"
 
-	modelBroker "github.com/SversusN/gophermart/internal/accrualagent/model"
+	"github.com/SversusN/gophermart/internal/accrualagent/model"
 	psql "github.com/SversusN/gophermart/internal/repository/psql"
 )
 
 type AgentRepoInterface interface {
-	GetOrders(ctx context.Context, limit int) ([]modelBroker.Order, error)
-	UpdateOrderAccruals(ctx context.Context, orderAccruals []modelBroker.OrderAccrual) error
+	GetOrders(ctx context.Context, limit int) ([]model.Order, error)
+	UpdateOrderAccruals(ctx context.Context, orderAccruals []model.OrderAccrual) error
 }
 
 type AgentRepository struct {

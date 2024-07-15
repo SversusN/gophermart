@@ -34,12 +34,6 @@ func (w WithdrawOrderService) GetBalance(ctx context.Context, userID int) (float
 }
 
 func (w WithdrawOrderService) DeductionOfPoints(ctx context.Context, order *model.WithdrawOrder) error {
-	accruals, withdrawn := w.GetBalance(ctx, order.UserID)
-
-	if order.Sum >= accruals-withdrawn {
-		return errs.ShowMeTheMoney{}
-	}
-
 	err := w.repo.DeductPoints(ctx, order)
 	if errors.Is(err, errs.ShowMeTheMoney{}) {
 		w.log.Error("no more money")

@@ -47,7 +47,7 @@ func (h *Handler) CreateRouter() *chi.Mux {
 		router.Get("/api/user/orders", h.getUploadedOrders)
 		router.Post("/api/user/balance/withdraw", h.deductionOfPoints)
 		router.Get("/api/user/withdrawals", h.getWithdrawalOfPoints)
-		router.Get("/api/user/balance", h.getCurrentBalance)
+		router.Get("/api/user/balance", h.getBalance)
 	})
 
 	return router

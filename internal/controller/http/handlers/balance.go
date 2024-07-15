@@ -10,7 +10,7 @@ import (
 )
 
 // getCurrentBalance GET /api/user/balance - получение текущего баланса пользователя
-func (h *Handler) getCurrentBalance(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getBalance(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	userID, err := h.getUserIDFromToken(w, r, "handler.getCurrentBalance")
@@ -28,7 +28,6 @@ func (h *Handler) getCurrentBalance(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errs.InternalServerError, http.StatusInternalServerError)
 		return
 	}
-
 	w.Write(output)
 }
 
