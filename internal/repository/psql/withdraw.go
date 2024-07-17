@@ -55,6 +55,22 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 			}
 		}
 	}()
+	var canDeduct uint
+	wasUsed := tx.QueryRowContext(ctx, `SELECT order_num FROM  public.withdrawals WHERE order_num = $1 LIMIT 1`, order.Order)
+	err = wasUsed.Scan(canDeduct)
+	if err == nil {
+		return errs.OrderAlreadyUploadedCurrentUserError{}
+	}
+
+	defer func() {
+		if err != nil {
+			txError := tx.Rollback()
+			if txError != nil {
+				err = fmt.Errorf("balance DeductPoints rollback error %s: %s", txError.Error(), err.Error())
+				w.log.Error(err.Error())
+			}
+		}
+	}()
 	//https://t.me/bushigo/36
 	sumAcc := 0.0
 	sumWd := 0.0

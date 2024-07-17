@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	errs "github.com/SversusN/gophermart/pkg/errors"
 	"go.uber.org/zap"
 	"time"
 
@@ -23,20 +24,6 @@ func NewAccrualOrderPostgres(db *sql.DB, log *zap.Logger) *AccrualOrderPostgres 
 }
 
 func (a *AccrualOrderPostgres) SaveOrder(ctx context.Context, order *model.AccrualOrder) (err error) {
-	order.UploadedAt = time.Now()
-
-	var userID int
-	var current float32
-
-	checkCurrent, err := a.db.PrepareContext(ctx, "SELECT id, current FROM users WHERE id = $1;")
-	if err != nil {
-		return err
-	}
-
-	if err = checkCurrent.QueryRowContext(ctx, order.UserID).Scan(&userID, &current); err != nil {
-		return err
-	}
-
 	tx, err := a.db.Begin()
 	if err != nil {
 		return err
@@ -50,6 +37,33 @@ func (a *AccrualOrderPostgres) SaveOrder(ctx context.Context, order *model.Accru
 			}
 		}
 	}()
+	var checkUser int
+	row := a.db.QueryRowContext(ctx, "SELECT user_id FROM public.accruals WHERE order_num=$1", order.Number)
+	err = row.Scan(&checkUser)
+	if err == nil {
+		if checkUser != order.UserID {
+			return errs.OrderAlreadyUploadedAnotherUserError{}
+			tx.Rollback()
+		}
+		if checkUser == order.UserID {
+			return errs.OrderAlreadyUploadedCurrentUserError{}
+			tx.Rollback()
+		}
+	}
+
+	order.UploadedAt = time.Now()
+
+	var userID int
+	var current float32
+
+	checkCurrent, err := a.db.PrepareContext(ctx, "SELECT id, current FROM users WHERE id = $1;")
+	if err != nil {
+		return err
+	}
+
+	if err = checkCurrent.QueryRowContext(ctx, order.UserID).Scan(&userID, &current); err != nil {
+		return err
+	}
 
 	_, err = tx.ExecContext(ctx,
 		"INSERT INTO orders(order_num,user_id) VALUES ($1,$2)", order.Number, order.UserID)
@@ -85,7 +99,6 @@ func (a *AccrualOrderPostgres) GetUserIDByNumberOrder(ctx context.Context, numbe
 	row := a.db.QueryRowContext(ctx, "SELECT user_id FROM public.accruals WHERE order_num=$1", number)
 	var userID int
 	_ = row.Scan(&userID)
-
 	return userID
 }
 
@@ -107,7 +120,7 @@ func (a *AccrualOrderPostgres) GetUploadedOrders(ctx context.Context, userID int
 		}
 		order.Status, err = model.GetStatus(status)
 		if err != nil {
-			a.log.Error("accrualagent db GetUploadedOrders")
+			a.log.Error("accrualagent err db GetUploadedOrders")
 			return nil, err
 		}
 		orders = append(orders, order)

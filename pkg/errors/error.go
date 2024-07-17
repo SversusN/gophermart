@@ -6,6 +6,7 @@ import (
 
 const (
 	InternalServerError = "internal server error"
+	BadData             = "bad data"
 )
 
 type ConflictLoginError struct {

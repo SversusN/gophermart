@@ -98,20 +98,19 @@ func (a *Agent) GetOrdersAccrual(ctx context.Context) {
 
 func (a *Agent) getOrdersAccrualWorker(order model.Order) {
 	var orderAccrual model.OrderAccrual
-	url := fmt.Sprintf("%s%s%d", a.accrualURL, "/api/orders/", order.Number)
-	err := a.getJSONOrderFromAccrual(url, &orderAccrual)
+	uri := fmt.Sprintf("%s%s%d", a.accrualURL, "/api/orders/", order.Number)
+	err := a.getOrderFromAccrual(uri, &orderAccrual)
 	if err != nil {
 		<-a.chLimitWorkers
 		return
 	}
-
 	if order.Status != model.StatusUNKNOWN && order.Status != orderAccrual.Status {
 		a.chOrdersAccrual <- orderAccrual
 		<-a.chLimitWorkers
 	}
 }
 
-func (a *Agent) getJSONOrderFromAccrual(url string, orderAccrual *model.OrderAccrual) error {
+func (a *Agent) getOrderFromAccrual(url string, orderAccrual *model.OrderAccrual) error {
 	resp, err := a.client.Get(url)
 	if resp.StatusCode == http.StatusNoContent {
 		return nil

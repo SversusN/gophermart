@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	signingKey = "WAdjK$12KCFjH6905u#uEZQjF349%835hFqzA"
+	signingKey = "JdjshJhdjnnd<SdjkaAkjd"
 )
 
 type Handler struct {

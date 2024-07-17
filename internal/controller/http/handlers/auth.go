@@ -46,5 +46,5 @@ func (h *Handler) authentication(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	h.writeToken(w, &user, "authentication")
+	h.writeToken(w, &user, "Authentication")
 }

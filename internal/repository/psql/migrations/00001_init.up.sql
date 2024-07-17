@@ -1,4 +1,6 @@
-CREATE TABLE users
+BEGIN TRANSACTION;
+
+CREATE TABLE IF NOT EXISTS users
 (
     id       SERIAL PRIMARY KEY,
     login    TEXT NOT NULL UNIQUE,
@@ -7,7 +9,7 @@ CREATE TABLE users
     withdrawal FLOAT NOT NULL DEFAULT 0
 );
 
-CREATE TABLE orders
+CREATE TABLE IF NOT EXISTS orders
 (
     id        BIGSERIAL PRIMARY KEY,
     order_num BIGINT UNIQUE,
@@ -15,7 +17,7 @@ CREATE TABLE orders
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
-CREATE TABLE accruals
+CREATE TABLE IF NOT EXISTS accruals
 (
     order_num   BIGINT PRIMARY KEY,
     user_id     INT  NOT NULL,
@@ -26,7 +28,7 @@ CREATE TABLE accruals
     FOREIGN KEY (order_num) REFERENCES orders (order_num)
 );
 
-CREATE TABLE withdrawals
+CREATE TABLE IF NOT EXISTS withdrawals111
 (
     order_num    BIGINT PRIMARY KEY,
     user_id      INT NOT NULL,
@@ -35,3 +37,5 @@ CREATE TABLE withdrawals
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (order_num) REFERENCES orders (order_num)
 );
+
+COMMIT TRANSACTION;

@@ -16,7 +16,7 @@ import (
 func (h *Handler) writeToken(w http.ResponseWriter, user *model.User, nameFunc string) {
 	token, err := h.Service.Auth.GenerateToken(user, h.TokenAuth)
 	if err != nil {
-		h.log.Error("Handler.writeToken: %s - token generate error")
+		h.log.Error("writeToken: %s - token generate error")
 		http.Error(w, errs.InternalServerError, http.StatusInternalServerError)
 		return
 	}
@@ -24,18 +24,23 @@ func (h *Handler) writeToken(w http.ResponseWriter, user *model.User, nameFunc s
 }
 
 func (h *Handler) readUserData(w http.ResponseWriter, r *http.Request, user *model.User, nameFunc string) error {
+	if r.Header.Get("Content-Type") != "application/json" {
+		h.log.Error("Handler.readingUserData: %s - body read error")
+		http.Error(w, errs.BadData, http.StatusBadRequest)
+		return errs.CheckError{}
+	}
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		h.log.Error("Handler.readingUserData: %s - body read error")
-		http.Error(w, errs.InternalServerError, http.StatusInternalServerError)
+		http.Error(w, errs.BadData, http.StatusBadRequest)
 		return err
 	}
 
 	err = json.Unmarshal(body, &user)
 	if err != nil {
 		h.log.Error("Handler.readingUserData: %s - json read error")
-		http.Error(w, errs.InternalServerError, http.StatusInternalServerError)
+		http.Error(w, errs.BadData, http.StatusBadRequest)
 		return err
 	}
 

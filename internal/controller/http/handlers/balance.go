@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	errs "github.com/SversusN/gophermart/pkg/errors"
+	"github.com/SversusN/gophermart/pkg/util"
 	"io"
 	"net/http"
 
@@ -51,6 +52,14 @@ func (h *Handler) deductionOfPoints(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.Error("Handler.deductionOfPoints: json read error")
 		http.Error(w, errs.InternalServerError, http.StatusInternalServerError)
+		return
+	}
+	if order.Sum < 0 {
+		http.Error(w, errs.BadData, http.StatusBadRequest)
+		return
+	}
+	if !util.ValidLuhn(order.Order) {
+		http.Error(w, errs.BadData, http.StatusUnprocessableEntity)
 		return
 	}
 

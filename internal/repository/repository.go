@@ -14,7 +14,7 @@ type AuthRepoInterface interface {
 	GetUserID(ctx context.Context, user *model.User) (int, error)
 }
 
-type AccrualOrderInterface interface {
+type AccrualOrderRepoInterface interface {
 	SaveOrder(ctx context.Context, order *model.AccrualOrder) error
 	GetUserIDByNumberOrder(ctx context.Context, number uint64) int
 	GetUploadedOrders(ctx context.Context, userID int) ([]model.AccrualOrder, error)
@@ -29,7 +29,7 @@ type WithdrawOrderRepoInterface interface {
 
 type Repository struct {
 	Auth     AuthRepoInterface
-	Accrual  AccrualOrderInterface
+	Accrual  AccrualOrderRepoInterface
 	Withdraw WithdrawOrderRepoInterface
 }
 

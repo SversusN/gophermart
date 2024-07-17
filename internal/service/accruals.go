@@ -2,25 +2,22 @@ package service
 
 import (
 	"context"
+	"errors"
+
 	"go.uber.org/zap"
 
 	"github.com/SversusN/gophermart/internal/model"
+	storage "github.com/SversusN/gophermart/internal/repository"
 	errs "github.com/SversusN/gophermart/pkg/errors"
 	"github.com/SversusN/gophermart/pkg/util"
 )
 
-type AccrualOrderRepoContract interface {
-	SaveOrder(ctx context.Context, order *model.AccrualOrder) error
-	GetUserIDByNumberOrder(ctx context.Context, number uint64) int
-	GetUploadedOrders(ctx context.Context, userID int) ([]model.AccrualOrder, error)
-}
-
 type AccrualOrderService struct {
-	repo AccrualOrderRepoContract
+	repo storage.AccrualOrderRepoInterface
 	log  *zap.Logger
 }
 
-func NewAccrualOrderService(repo AccrualOrderRepoContract, log *zap.Logger) *AccrualOrderService {
+func NewAccrualOrderService(repo storage.AccrualOrderRepoInterface, log *zap.Logger) *AccrualOrderService {
 	return &AccrualOrderService{
 		repo: repo,
 		log:  log,
@@ -39,19 +36,18 @@ func (a *AccrualOrderService) LoadOrder(ctx context.Context, numOrder uint64, us
 		Status: model.StatusNEW,
 	}
 
-	userIDinDB := a.repo.GetUserIDByNumberOrder(ctx, order.Number)
-	if userIDinDB != 0 {
-		if userIDinDB == order.UserID {
-			return errs.OrderAlreadyUploadedCurrentUserError{}
-		} else {
+	err := a.repo.SaveOrder(ctx, &order)
+
+	if err != nil {
+		if errors.Is(err, errs.OrderAlreadyUploadedAnotherUserError{}) {
 			return errs.OrderAlreadyUploadedAnotherUserError{}
 		}
-	}
-
-	err := a.repo.SaveOrder(ctx, &order)
-	if err != nil {
-		a.log.Error("AccrualOrderService.LoadOrder: SaveOrder db error")
-		return err
+		if errors.Is(err, errs.OrderAlreadyUploadedCurrentUserError{}) {
+			return errs.OrderAlreadyUploadedCurrentUserError{}
+		} else {
+			a.log.Error("AccrualOrderService.LoadOrder: SaveOrder db error")
+			return err
+		}
 	}
 
 	return nil

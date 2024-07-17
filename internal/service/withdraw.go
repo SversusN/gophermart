@@ -3,38 +3,34 @@ package service
 import (
 	"context"
 	"errors"
-	errs "github.com/SversusN/gophermart/pkg/errors"
+
 	"go.uber.org/zap"
 
 	"github.com/SversusN/gophermart/internal/model"
+	storage "github.com/SversusN/gophermart/internal/repository"
+	errs "github.com/SversusN/gophermart/pkg/errors"
 )
 
-type WithdrawOrderRepoContract interface {
-	GetAccruals(ctx context.Context, UserID int) float32
-	GetWithdrawals(ctx context.Context, UserID int) float32
-	DeductPoints(ctx context.Context, order *model.WithdrawOrder) error
-	GetWithdrawalOfPoints(ctx context.Context, userID int) ([]model.WithdrawOrder, error)
-}
 type WithdrawOrderService struct {
-	repo WithdrawOrderRepoContract
-	log  *zap.Logger
+	rep storage.WithdrawOrderRepoInterface
+	log *zap.Logger
 }
 
-func NewWithdrawOrderService(repo WithdrawOrderRepoContract, log *zap.Logger) *WithdrawOrderService {
+func NewWithdrawOrderService(rep storage.WithdrawOrderRepoInterface, log *zap.Logger) *WithdrawOrderService {
 	return &WithdrawOrderService{
-		repo: repo,
-		log:  log,
+		rep: rep,
+		log: log,
 	}
 }
 
 func (w WithdrawOrderService) GetBalance(ctx context.Context, userID int) (float32, float32) {
-	accruals := w.repo.GetAccruals(ctx, userID)
-	withdrawn := w.repo.GetWithdrawals(ctx, userID)
+	accruals := w.rep.GetAccruals(ctx, userID)
+	withdrawn := w.rep.GetWithdrawals(ctx, userID)
 	return accruals, withdrawn
 }
 
 func (w WithdrawOrderService) DeductionOfPoints(ctx context.Context, order *model.WithdrawOrder) error {
-	err := w.repo.DeductPoints(ctx, order)
+	err := w.rep.DeductPoints(ctx, order)
 	if errors.Is(err, errs.ShowMeTheMoney{}) {
 		w.log.Error("no more money")
 		return err
@@ -48,7 +44,7 @@ func (w WithdrawOrderService) DeductionOfPoints(ctx context.Context, order *mode
 }
 
 func (w *WithdrawOrderService) GetWithdrawalOfPoints(ctx context.Context, userID int) ([]model.WithdrawOrder, error) {
-	orders, err := w.repo.GetWithdrawalOfPoints(ctx, userID)
+	orders, err := w.rep.GetWithdrawalOfPoints(ctx, userID)
 	if err != nil {
 		w.log.Error("WithdrawOrderService.GetWithdrawalOfPoints: GetWithdrawalOfPoints db error")
 		return nil, err

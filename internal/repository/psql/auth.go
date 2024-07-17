@@ -42,11 +42,11 @@ func (a *AuthPostgres) CreateUser(ctx context.Context, user *model.User) (int, e
 
 func (a *AuthPostgres) GetUserID(ctx context.Context, user *model.User) (int, error) {
 	row := a.db.QueryRowContext(ctx, "SELECT id FROM public.users WHERE login=$1 AND password=$2", user.Login, user.Password)
-	var output sql.NullInt32
-	_ = row.Scan(&output)
-	if !output.Valid {
+	var id sql.NullInt32
+	_ = row.Scan(&id)
+	if !id.Valid {
 		return 0, errs.AuthenticationError{}
 	}
-	userID := int(output.Int32)
+	userID := int(id.Int32)
 	return userID, nil
 }

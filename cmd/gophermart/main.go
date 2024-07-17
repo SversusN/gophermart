@@ -2,6 +2,12 @@ package main
 
 import (
 	"context"
+	"net/http"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+
 	"github.com/SversusN/gophermart/config"
 	agent "github.com/SversusN/gophermart/internal/accrualagent/service"
 	app "github.com/SversusN/gophermart/internal/app"
@@ -10,10 +16,6 @@ import (
 	psql "github.com/SversusN/gophermart/internal/repository/psql"
 	"github.com/SversusN/gophermart/internal/service"
 	"github.com/SversusN/gophermart/pkg/logger"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
@@ -34,7 +36,20 @@ func main() {
 	if err != nil {
 		zp.Fatalf("DB connection error %v", err)
 	}
-	err = db.Init()
+	//парсим DSN
+	dbName := ""
+	dbArray := strings.Split(conf.DatabaseURI, " ")
+	for i := range dbArray {
+		if strings.Contains(dbArray[i], "dbname") {
+			dbName = strings.Split(dbArray[i], "=")[1]
+		}
+	}
+
+	if dbName == "" {
+		zp.Fatalf("DB parsing error error %v", err)
+	}
+
+	err = db.Init(dbName)
 	if err != nil {
 		zp.Fatalf("failed to create db table %v", err)
 	}
@@ -45,14 +60,14 @@ func main() {
 	repos := repository.NewRepository(db.DB, log)
 	services := service.NewService(repos, log)
 	handlers := handler.NewHandler(services, log)
-
+	//настройка воркера
 	agentRepo := repository.NewAgentRepository(db.DB, log)
 	newAgent := agent.NewAgent(agentRepo, conf.AccrualSystemAddress, log)
 	newAgent.Start(ctx)
 
 	server := app.NewServer(conf, handlers.CreateRouter())
 
-	//graceful shutdown
+	//завершаемся по книжке...
 	termChan := make(chan os.Signal, 1)
 	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
 

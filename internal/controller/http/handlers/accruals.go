@@ -2,14 +2,18 @@ package handler
 
 import (
 	"encoding/json"
-	errs "github.com/SversusN/gophermart/pkg/errors"
-	"github.com/SversusN/gophermart/pkg/util"
 	"io"
 	"net/http"
 	"strconv"
+
+	errs "github.com/SversusN/gophermart/pkg/errors"
+	"github.com/SversusN/gophermart/pkg/util"
 )
 
 func (h *Handler) loadOrders(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Content-Type") != "text/plain" {
+		w.WriteHeader(http.StatusBadRequest)
+	}
 	userID, err := h.getUserIDFromToken(w, r, "handler.loadOrders")
 	if err != nil {
 		return
