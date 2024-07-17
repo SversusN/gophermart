@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
-
 	"go.uber.org/zap"
 
 	"github.com/SversusN/gophermart/internal/model"
@@ -39,12 +37,13 @@ func (a *AccrualOrderService) LoadOrder(ctx context.Context, numOrder uint64, us
 	err := a.repo.SaveOrder(ctx, &order)
 
 	if err != nil {
-		if errors.Is(err, errs.OrderAlreadyUploadedAnotherUserError{}) {
+
+		switch err.(type) {
+		case errs.OrderAlreadyUploadedAnotherUserError:
 			return errs.OrderAlreadyUploadedAnotherUserError{}
-		}
-		if errors.Is(err, errs.OrderAlreadyUploadedCurrentUserError{}) {
+		case errs.OrderAlreadyUploadedCurrentUserError:
 			return errs.OrderAlreadyUploadedCurrentUserError{}
-		} else {
+		default:
 			a.log.Error("AccrualOrderService.LoadOrder: SaveOrder db error")
 			return err
 		}
