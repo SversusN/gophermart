@@ -42,17 +42,11 @@ func (a *AccrualOrderPostgres) SaveOrder(ctx context.Context, order *model.Accru
 	err = row.Scan(&checkUser)
 	if err == nil {
 		if checkUser != order.UserID {
-			err := tx.Rollback()
-			if err != nil {
-				return err
-			}
+
 			return errs.OrderAlreadyUploadedAnotherUserError{}
 		}
 		if checkUser == order.UserID {
-			err := tx.Rollback()
-			if err != nil {
-				return err
-			}
+
 			return errs.OrderAlreadyUploadedCurrentUserError{}
 		}
 	}
