@@ -49,7 +49,7 @@ func main() {
 		zp.Fatalf("DB parsing error error %v", err)
 	}
 
-	err = db.Init(dbName)
+	err = db.Init("praktikum") //тесты...
 	if err != nil {
 		zp.Fatalf("failed to create db table %v", err)
 	}
