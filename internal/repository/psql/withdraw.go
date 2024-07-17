@@ -55,11 +55,15 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 			}
 		}
 	}()
-	var canDeduct uint
-	wasUsed := tx.QueryRowContext(ctx, `SELECT order_num FROM  public.withdrawals WHERE order_num = $1 LIMIT 1`, order.Order)
+	var canDeduct int
+	wasUsed := tx.QueryRowContext(ctx, `SELECT user_id FROM  public.withdrawals WHERE order_num = $1 LIMIT 1`, order.Order)
 	err = wasUsed.Scan(canDeduct)
 	if err == nil {
-		return errs.OrderAlreadyUploadedCurrentUserError{}
+		if canDeduct == order.UserID {
+			return errs.OrderAlreadyUploadedCurrentUserError{}
+		} else {
+			return errs.OrderAlreadyUploadedAnotherUserError{}
+		}
 	}
 
 	defer func() {
