@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 
 	"github.com/SversusN/gophermart/config"
@@ -36,20 +35,8 @@ func main() {
 	if err != nil {
 		zp.Fatalf("DB connection error %v", err)
 	}
-	//парсим DSN
-	dbName := ""
-	dbArray := strings.Split(conf.DatabaseURI, " ")
-	for i := range dbArray {
-		if strings.Contains(dbArray[i], "dbname") {
-			dbName = strings.Split(dbArray[i], "=")[1]
-		}
-	}
 
-	if dbName == "" {
-		zp.Fatalf("DB parsing error error %v", err)
-	}
-
-	err = db.Init("praktikum") //тесты...
+	err = db.Init() //тесты...
 	if err != nil {
 		zp.Fatalf("failed to create db table %v", err)
 	}

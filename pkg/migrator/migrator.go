@@ -27,13 +27,13 @@ func MustGetNewMigrator(sqlFiles embed.FS, dirName string) *Migrator {
 	}
 }
 
-func (m *Migrator) ApplyMigrations(db *sql.DB, dbName string) error {
+func (m *Migrator) ApplyMigrations(db *sql.DB) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		return fmt.Errorf("unable to create db instance: %v", err)
 	}
 
-	migrator, err := migrate.NewWithInstance("migration_embeded_sql_files", m.srcDriver, dbName, driver)
+	migrator, err := migrate.NewWithInstance("migration_embeded_sql_files", m.srcDriver, "gophermart", driver)
 	if err != nil {
 		return fmt.Errorf("unable to create migration: %v", err)
 	}
