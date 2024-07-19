@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -27,13 +28,20 @@ func MustGetNewMigrator(sqlFiles embed.FS, dirName string) *Migrator {
 	}
 }
 
-func (m *Migrator) ApplyMigrations(db *sql.DB) error {
+func (m *Migrator) ApplyMigrations(db *sql.DB, connectionString string) error {
+
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		return fmt.Errorf("unable to create db instance: %v", err)
 	}
 
-	migrator, err := migrate.NewWithInstance("migration_embeded_sql_files", m.srcDriver, "gophermart", driver)
+	dbName, err := url.Parse(connectionString)
+	if err != nil {
+		return fmt.Errorf("unable to parse connection string: %v", err)
+	}
+
+	migrator, err := migrate.NewWithInstance("migration_embeded_sql_files", m.srcDriver, dbName.Path, driver)
+
 	if err != nil {
 		return fmt.Errorf("unable to create migration: %v", err)
 	}

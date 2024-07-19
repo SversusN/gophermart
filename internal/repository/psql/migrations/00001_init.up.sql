@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS accruals
     FOREIGN KEY (order_num) REFERENCES orders (order_num)
 );
 
-CREATE TABLE IF NOT EXISTS withdrawals111
+CREATE TABLE IF NOT EXISTS withdrawals
 (
     order_num    BIGINT PRIMARY KEY,
     user_id      INT NOT NULL,

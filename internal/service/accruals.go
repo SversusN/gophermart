@@ -48,7 +48,6 @@ func (a *AccrualOrderService) LoadOrder(ctx context.Context, numOrder uint64, us
 			return err
 		}
 	}
-
 	return nil
 }
 

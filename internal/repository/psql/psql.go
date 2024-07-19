@@ -5,9 +5,9 @@ import (
 	"embed"
 	"go.uber.org/zap"
 
-	mig "github.com/SversusN/gophermart/pkg/migrator"
+	_ "github.com/jackc/pgx/v5/stdlib"
 
-	_ "github.com/jackc/pgx/v4/stdlib"
+	mig "github.com/SversusN/gophermart/pkg/migrator"
 )
 
 type Psql struct {
@@ -41,48 +41,13 @@ func (p *Psql) Ping() error {
 	return nil
 }
 
-func (p *Psql) Init() error {
+func (p *Psql) Init(connectionString string) error {
 
-	migrate := mig.MustGetNewMigrator(MigrationsFS, migrationsDir)
-	err := migrate.ApplyMigrations(p.DB)
+	m := mig.MustGetNewMigrator(MigrationsFS, migrationsDir)
+	err := m.ApplyMigrations(p.DB, connectionString)
 
 	if err != nil {
 		zap.Error(err)
-		return err
-	}
-	_, err = p.DB.Exec(`CREATE TABLE IF NOT EXISTS users(
-		    id SERIAL PRIMARY KEY,
-    		login TEXT NOT NULL UNIQUE,
-    		password TEXT NOT NULL,
-    		"current" FLOAT NOT NULL DEFAULT 0,
-        	withdrawal FLOAT NOT NULL DEFAULT 0
-    		);
-
-			CREATE TABLE IF NOT EXISTS orders(
-				id BIGSERIAL PRIMARY KEY,
-				order_num BIGINT UNIQUE,
-				user_id INT NOT NULL,
-				FOREIGN KEY (user_id) REFERENCES public.users (id));
-
-			CREATE TABLE IF NOT EXISTS accruals(
-				order_num BIGINT PRIMARY KEY,
-				user_id INT NOT NULL,
-				status TEXT NOT NULL DEFAULT 'NEW',
-				amount FLOAT DEFAULT 0,
-				uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-				FOREIGN KEY (user_id) REFERENCES public.users (id),
-			    FOREIGN KEY (order_num) REFERENCES public.orders (order_num));
-
-			CREATE TABLE IF NOT EXISTS withdrawals(
-			    order_num BIGINT PRIMARY KEY,
-				user_id INT NOT NULL,
-				amount FLOAT DEFAULT 0,
-				processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-				FOREIGN KEY (user_id) REFERENCES public.users (id),
-			    FOREIGN KEY (order_num) REFERENCES public.orders (order_num));
-`)
-
-	if err != nil {
 		return err
 	}
 

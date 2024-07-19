@@ -36,7 +36,7 @@ func main() {
 		zp.Fatalf("DB connection error %v", err)
 	}
 
-	err = db.Init() //тесты...
+	err = db.Init(conf.DatabaseURI)
 	if err != nil {
 		zp.Fatalf("failed to create db table %v", err)
 	}
