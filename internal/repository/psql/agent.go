@@ -21,7 +21,7 @@ func NewAgentPostgres(db *sql.DB, log *zap.Logger) *AgentPG {
 }
 
 func (a *AgentPG) GetOrders(ctx context.Context, limit int) ([]model.Order, error) {
-	rows, err := a.db.QueryContext(ctx, "SELECT order_num, status FROM public.accruals WHERE status=$1 OR status=$2 ORDER BY uploaded_at $3", model.StatusNEW.String(), model.StatusPROCESSING.String(), limit)
+	rows, err := a.db.QueryContext(ctx, "SELECT order_num, status FROM public.accruals WHERE status=$1 OR status=$2 ORDER BY uploaded_at limit $3", model.StatusNEW.String(), model.StatusPROCESSING.String(), limit)
 	if err != nil {
 		return nil, err
 	}
