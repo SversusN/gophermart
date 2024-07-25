@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/SversusN/gophermart/config"
@@ -50,8 +51,8 @@ func main() {
 	//настройка воркера
 	agentRepo := repository.NewAgentRepository(db.DB, log)
 	newAgent := agent.NewAgent(agentRepo, conf.AccrualSystemAddress, log)
-	//wg := sync.WaitGroup{}
-	newAgent.Start(ctx)
+	wg := sync.WaitGroup{}
+	newAgent.Start(ctx, &wg)
 
 	server := app.NewServer(conf, handlers.CreateRouter())
 
@@ -66,7 +67,7 @@ func main() {
 		if err = server.Stop(ctx); err != nil {
 			zp.Fatalf("server shutdown error %v", err)
 		}
-		//	wg.Wait()
+		wg.Wait()
 	}()
 
 	if err = server.Run(); err != nil && err != http.ErrServerClosed {

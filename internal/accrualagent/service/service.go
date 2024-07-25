@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/SversusN/gophermart/internal/accrualagent/model"
@@ -51,9 +52,9 @@ func NewAgent(r AgentInterface, accrualURL string, log *zap.Logger) *Agent {
 	}
 }
 
-func (a *Agent) Start(ctx context.Context) {
-	//wg.Add(3)
-	//defer wg.Done()
+func (a *Agent) Start(ctx context.Context, wg *sync.WaitGroup) {
+	wg.Add(3)
+	defer wg.Done()
 	go a.GetOrders(ctx)
 	go a.GetOrdersAccrual(ctx)
 	go a.LoadOrdersAccrual(ctx)
@@ -115,6 +116,10 @@ func (a *Agent) getOrdersAccrualWorker(order model.Order) {
 
 func (a *Agent) getOrderFromAccrual(url string, orderAccrual *model.OrderAccrual) error {
 	resp, err := a.client.Get(url)
+	if err != nil {
+		a.log.Error("Agent.getJSONOrderFromAccrual: Get url error")
+		return err
+	}
 	if resp.StatusCode == http.StatusNoContent {
 		return nil
 	}
@@ -128,10 +133,6 @@ func (a *Agent) getOrderFromAccrual(url string, orderAccrual *model.OrderAccrual
 		return nil
 	}
 
-	if err != nil {
-		a.log.Error("Agent.getJSONOrderFromAccrual: Get url error")
-		return err
-	}
 	defer resp.Body.Close()
 
 	err = json.NewDecoder(resp.Body).Decode(&orderAccrual)
