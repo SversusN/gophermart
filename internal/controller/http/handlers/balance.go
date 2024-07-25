@@ -38,14 +38,14 @@ func (h *Handler) deductionOfPoints(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-
-	defer r.Body.Close()
+	//https://t.me/bushigo/21
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		h.log.Error("Handler.deductionOfPoints: body read error")
 		http.Error(w, "wrong input data", http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 
 	var order *model.WithdrawOrder
 	err = json.Unmarshal(body, &order)

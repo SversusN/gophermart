@@ -66,12 +66,6 @@ func (a *AccrualOrderPostgres) SaveOrder(ctx context.Context, order *model.Accru
 	}
 
 	_, err = tx.ExecContext(ctx,
-		"INSERT INTO orders(order_num,user_id) VALUES ($1,$2)", order.Number, order.UserID)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.ExecContext(ctx,
 		"INSERT INTO accruals(order_num,user_id,status,uploaded_at) VALUES ($1,$2,$3,$4)",
 		order.Number, order.UserID, order.Status.String(), order.UploadedAt)
 	if err != nil {

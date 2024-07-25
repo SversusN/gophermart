@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/SversusN/gophermart/internal/model"
 	"github.com/go-chi/jwtauth/v5"
@@ -24,8 +25,8 @@ func (h *Handler) writeToken(w http.ResponseWriter, user *model.User, nameFunc s
 }
 
 func (h *Handler) readUserData(w http.ResponseWriter, r *http.Request, user *model.User, nameFunc string) error {
-	if r.Header.Get("Content-Type") != "application/json" {
-		h.log.Error("Handler.readingUserData: %s - body read error")
+	if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
+		h.log.Error("Handler.readingUserData: %s - header read error")
 		http.Error(w, errs.BadData, http.StatusBadRequest)
 		return errs.CheckError{}
 	}

@@ -9,13 +9,6 @@ CREATE TABLE IF NOT EXISTS users
     withdrawal FLOAT NOT NULL DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS orders
-(
-    id        BIGSERIAL PRIMARY KEY,
-    order_num BIGINT UNIQUE,
-    user_id   INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (id)
-);
 
 CREATE TABLE IF NOT EXISTS accruals
 (

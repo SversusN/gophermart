@@ -66,15 +66,6 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 		}
 	}
 
-	defer func() {
-		if err != nil {
-			txError := tx.Rollback()
-			if txError != nil {
-				err = fmt.Errorf("balance DeductPoints rollback error %s: %s", txError.Error(), err.Error())
-				w.log.Error(err.Error())
-			}
-		}
-	}()
 	//https://t.me/bushigo/36
 	sumAcc := 0.0
 	sumWd := 0.0
@@ -92,11 +83,6 @@ func (w *WithdrawOrderRepository) DeductPoints(ctx context.Context, order *model
 	}
 	if sumAcc-sumWd <= 0 {
 		return errs.ShowMeTheMoney{}
-	}
-	_, err = tx.ExecContext(ctx,
-		"INSERT INTO public.orders(order_num, user_id) VALUES ($1,$2)", order.Order, order.UserID)
-	if err != nil {
-		return err
 	}
 
 	_, err = tx.ExecContext(ctx,

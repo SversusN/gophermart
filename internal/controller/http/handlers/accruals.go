@@ -13,6 +13,7 @@ import (
 func (h *Handler) loadOrders(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Content-Type") != "text/plain" {
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	userID, err := h.getUserIDFromToken(w, r, "handler.loadOrders")
 	if err != nil {

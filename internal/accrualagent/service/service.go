@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"net/http"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/SversusN/gophermart/internal/accrualagent/model"
@@ -50,7 +52,9 @@ func NewAgent(r AgentInterface, accrualURL string, log *zap.Logger) *Agent {
 	}
 }
 
-func (a *Agent) Start(ctx context.Context) {
+func (a *Agent) Start(ctx context.Context, wg *sync.WaitGroup) {
+	wg.Add(3)
+	defer wg.Done()
 	go a.GetOrders(ctx)
 	go a.GetOrdersAccrual(ctx)
 	go a.LoadOrdersAccrual(ctx)
@@ -59,7 +63,7 @@ func (a *Agent) Start(ctx context.Context) {
 func (a *Agent) GetOrders(ctx context.Context) {
 
 	ticker := time.NewTicker(timeoutLoadOrdersDB * time.Second)
-
+	defer ticker.Stop()
 	for {
 		select {
 		case <-a.chSignalGetOrdersForProcessing:
@@ -115,6 +119,16 @@ func (a *Agent) getOrderFromAccrual(url string, orderAccrual *model.OrderAccrual
 	if resp.StatusCode == http.StatusNoContent {
 		return nil
 	}
+	if resp.StatusCode == http.StatusTooManyRequests {
+		secondsString := resp.Header.Get("Retry-After")
+		timeWait, err := time.ParseDuration(strings.Join([]string{secondsString, "s"}, ""))
+		if err != nil {
+			return err
+		}
+		time.Sleep(timeWait)
+		return nil
+	}
+
 	if err != nil {
 		a.log.Error("Agent.getJSONOrderFromAccrual: Get url error")
 		return err
@@ -132,7 +146,7 @@ func (a *Agent) getOrderFromAccrual(url string, orderAccrual *model.OrderAccrual
 
 func (a *Agent) LoadOrdersAccrual(ctx context.Context) {
 	ticker := time.NewTicker(timeoutLoadOrdersDB * time.Second)
-
+	defer ticker.Stop()
 	for {
 		select {
 		case order := <-a.chOrdersAccrual:

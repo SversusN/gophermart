@@ -21,13 +21,11 @@ func NewAgentPostgres(db *sql.DB, log *zap.Logger) *AgentPG {
 }
 
 func (a *AgentPG) GetOrders(ctx context.Context, limit int) ([]model.Order, error) {
-	rows, err := a.db.QueryContext(ctx, "SELECT order_num, status FROM public.accruals WHERE status=$1 OR status=$2 LIMIT $3", model.StatusNEW.String(), model.StatusPROCESSING.String(), limit)
+	rows, err := a.db.QueryContext(ctx, "SELECT order_num, status FROM public.accruals WHERE status=$1 OR status=$2 ORDER BY uploaded_at $3", model.StatusNEW.String(), model.StatusPROCESSING.String(), limit)
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
-
 	var orders []model.Order
 	for rows.Next() {
 		var order model.Order
@@ -51,14 +49,8 @@ func (a *AgentPG) GetOrders(ctx context.Context, limit int) ([]model.Order, erro
 }
 
 func (a *AgentPG) UpdateOrderAccruals(ctx context.Context, orderAccruals []model.OrderAccrual) error {
-	tx, err := a.db.Begin()
-	if err != nil {
-		return err
-	}
 
-	defer tx.Rollback()
-
-	stmt, err := tx.PrepareContext(ctx,
+	stmt, err := a.db.PrepareContext(ctx,
 		"UPDATE public.accruals SET status=$1, amount=$2 WHERE order_num=$3")
 	if err != nil {
 		return err
@@ -71,6 +63,5 @@ func (a *AgentPG) UpdateOrderAccruals(ctx context.Context, orderAccruals []model
 			return err
 		}
 	}
-
-	return tx.Commit()
+	return nil
 }
