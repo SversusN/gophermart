@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/SversusN/gophermart/internal/accrualagent/model"
@@ -52,9 +51,9 @@ func NewAgent(r AgentInterface, accrualURL string, log *zap.Logger) *Agent {
 	}
 }
 
-func (a *Agent) Start(ctx context.Context, wg *sync.WaitGroup) {
-	wg.Add(3)
-	defer wg.Done()
+func (a *Agent) Start(ctx context.Context) {
+	//wg.Add(3)
+	//defer wg.Done()
 	go a.GetOrders(ctx)
 	go a.GetOrdersAccrual(ctx)
 	go a.LoadOrdersAccrual(ctx)
