@@ -66,7 +66,7 @@ func main() {
 		if err = server.Stop(ctx); err != nil {
 			zp.Fatalf("server shutdown error %v", err)
 		}
-		wg.Wait()
+		//	wg.Wait()
 	}()
 
 	if err = server.Run(); err != nil && err != http.ErrServerClosed {
