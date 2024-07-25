@@ -132,6 +132,10 @@ func (a *Agent) getOrderFromAccrual(url string, orderAccrual *model.OrderAccrual
 		time.Sleep(timeWait)
 		return nil
 	}
+	if resp.StatusCode == http.StatusInternalServerError {
+		a.log.Error("Agent.getJSONOrderFromAccrual: Get url internal server error")
+		return nil
+	}
 
 	defer resp.Body.Close()
 
