@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS accruals
     status      TEXT NOT NULL            DEFAULT 'NEW',
     amount      REAL                     DEFAULT 0,
     uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 CREATE TABLE IF NOT EXISTS withdrawals
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS withdrawals
     user_id      INT NOT NULL,
     amount       REAL                     DEFAULT 0,
     processed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 COMMIT TRANSACTION;
